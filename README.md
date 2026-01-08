@@ -1,1 +1,2 @@
-# stat-reader
+# stats_reader
+Stats reader project
