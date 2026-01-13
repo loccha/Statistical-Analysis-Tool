@@ -1,10 +1,12 @@
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
-from FileHandler import FileHandler
+#from FileHandler import FileHandler
 import sys
 import os
 
-class Interface:
+#View
+
+class GUI:
 
     def __init__(self, root):
         self.path=""

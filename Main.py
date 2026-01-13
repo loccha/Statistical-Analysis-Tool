@@ -1,11 +1,34 @@
-import csv
 import re
+from data_handler import DataHandler
+from gui import GUI
 
-with open('stats_22_05_16_13_22_10.csv', newline='') as csvfile:
-     reader = csv.reader(csvfile, skipinitialspace=True, delimiter=',')
-     data = [row for row in reader]
+#Controller
+
+try:
+    data_handler = DataHandler('sampleData/dataset.csv')
+    #print(data_handler.get_categories())
+    print(data_handler.get_delta_df('Gross domestic product (GDP), Price deflator, Index','2002','2004'))
+
+    #TODO: open the gui here
 
 
+except Exception as e:
+    print("Error: ", e)
+
+
+
+
+
+
+
+
+
+
+#with open('sampleData/stats_22_05_16_13_22_10.csv', newline='') as csvfile:
+#     reader = csv.reader(csvfile, skipinitialspace=True, delimiter=',')
+#     data = [row for row in reader]
+
+#TODO : Redo this function
 def stringToFloat(data):
     '''Takes a string
        Return float after ":"
@@ -89,36 +112,35 @@ def delta(dir):
     return delt_line-1
 
 
+# print("\n --- SUMMARY (Last to first line delta) --- \n")
+# display_delta(0, -1)
 
-print("\n --- SUMMARY (Last to first line delta) --- \n")
-display_delta(0, -1)
+# line = 0
+# delt_line=0
+# while(line>=0 and line<=(len(data)-1)): 
 
-line = 0
-delt_line=0
-while(line>=0 and line<=(len(data)-1)): 
-
-    print("\n --- Line " + str(line+1) + ": --- \n")
-    display_line(line)
+#     print("\n --- Line " + str(line+1) + ": --- \n")
+#     display_line(line)
     
-    print("\n --- Line " + str(line+1) + " (delta line " + str(delt_line+1) + "): --- \n")
-    display_delta(delt_line, line)
+#     print("\n --- Line " + str(line+1) + " (delta line " + str(delt_line+1) + "): --- \n")
+#     display_delta(delt_line, line)
       
-    dir = input("\nCONTROLS:\nnext (n) previous (p) delta (d):") 
-    char_dir = list(dir)
+#     dir = input("\nCONTROLS:\nnext (n) previous (p) delta (d):") 
+#     char_dir = list(dir)
     
-    for i in range(len(char_dir)):
-       if (char_dir[i]=="n"):
-         line += direction(dir)
-       elif (char_dir[i]=="p"):
-         line -= direction(dir)
+#     for i in range(len(char_dir)):
+#        if (char_dir[i]=="n"):
+#          line += direction(dir)
+#        elif (char_dir[i]=="p"):
+#          line -= direction(dir)
 
-       if (char_dir[i]=="d"):
-         delt_line = delta(dir)
-       else: #default
-         delt_line = line-1
+#        if (char_dir[i]=="d"):
+#          delt_line = delta(dir)
+#        else: #default
+#          delt_line = line-1
 
 
-print("\x1b[4;31;40m" + "Error message" + "\x1b[0m")
+
 
 
 
