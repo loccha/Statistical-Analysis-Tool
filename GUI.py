@@ -83,7 +83,7 @@ class GUI:
         self.scroll_bar = tk.Scrollbar(self.treeview_frame)
         self.scroll_bar.pack(side=tk.RIGHT, fill=tk.Y)
 
-        columns=['COUNTRY', 'START', 'END', 'CHANGE']
+        columns=['Country name', 'From', 'To', '% Change']
         self.treeview = ttk.Treeview(
             self.treeview_frame, 
             yscrollcommand=self.scroll_bar.set,
@@ -128,26 +128,29 @@ class GUI:
     def display_datas(self, df):
         self.treeview.delete(*self.treeview.get_children())
 
-        for idx, row in df.iterrows():
-            tags = []
-            tags.append('pair') if idx % 2 == 0 else tags.append('impair')
-            if(list(row)[3]<0):
-                tags.append('negative')
-            self.treeview.insert('', 'end', values=list(row), tags=tags)
-        
+        #----tags color configuration----
         self.treeview.tag_configure("negative", foreground="#cc2c2c")
         self.treeview.tag_configure('pair', background="#c7c7c7")
         self.treeview.tag_configure('impair', background='white')
 
+        for idx, row in df.iterrows():
+            values = list(row)
+            tags = []
+            tags.append('pair') if idx % 2 == 0 else tags.append('impair')
+
+            #row must be red if delta's value is negative
+            if(values[-1]<0):
+                tags.append('negative')
+            
+            #Format strings to display
+            values[1:] = [f"{x:.3f}" for x in values[1:]]
+
+            self.treeview.insert('', 'end', values=values, tags=tags)
+    
+
     # def enable(self):
     #     '''Change the entry state from readonly to normal'''
     #     self.file_entry.config(state="normal") 
-        
-    def reset(self):
-        ''' Delete everything in self.stats(Treeview)
-        '''
-        for i in self.treeview.get_children():
-            self.treeview.delete(i)
     
     #TODO: limit the years to min and max years
     def min_max_years_boundaries(self):
