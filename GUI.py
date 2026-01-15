@@ -14,7 +14,6 @@ class GUI:
     #builds the opening UI
     def build_ui(self):
         self.root.title("Statistical Analysis Tool")
-        #self.root.geometry('550x660')
         self.font1=('Bahnschrift', 11, 'normal')
 
         #----Main form frame----
@@ -77,16 +76,34 @@ class GUI:
 
 
         #----------Treeview-------------
-        self.treeview_frame = tk.Frame(self.root, width=300, height=400)
-        self.treeview_frame.pack_propagate(False)
-        self.treeview_frame.pack(padx=10, pady=10, anchor='n')
+        self.treeview_frame = tk.Frame(self.root, width=470, height=400)
+        #self.treeview_frame.pack_propagate(False)
+        self.treeview_frame.pack(padx=20, pady=20, anchor='nw')
 
         self.scroll_bar = tk.Scrollbar(self.treeview_frame)
         self.scroll_bar.pack(side=tk.RIGHT, fill=tk.Y)
 
-        self.treeview = ttk.Treeview(self.treeview_frame, yscrollcommand=self.scroll_bar.set)
-        self.treeview.pack(fill='both', expand=True)
-        self.treeview.tag_configure("negative", foreground='red')
+        columns=['COUNTRY', 'START', 'END', 'CHANGE']
+        self.treeview = ttk.Treeview(
+            self.treeview_frame, 
+            yscrollcommand=self.scroll_bar.set,
+            columns=columns,
+            show='headings'
+            )
+        
+        for col in columns:
+            self.treeview.heading(col, text=col)
+
+        #COUNTRY column
+        self.treeview.heading(columns[0], text=columns[0])
+        self.treeview.column(columns[0], width=225, stretch=False)
+
+        #numbers columns
+        for col in columns[1:]:
+            self.treeview.heading(col, text=col)
+            self.treeview.column(col, anchor='e', width=75, stretch=False)
+
+        self.treeview.pack()
 
         self.scroll_bar.config(command=self.treeview.yview)
 
@@ -111,16 +128,16 @@ class GUI:
     def display_datas(self, df):
         self.treeview.delete(*self.treeview.get_children())
 
-        self.treeview['columns'] = list(df.columns)
-        self.treeview['show'] = 'headings'
-
-        for col in df.columns:
-            self.treeview.heading(col, text=col)
-            self.treeview.column(col, width=100)
-
-        for i, row in df.iterrows():
-            values = list(row)  # Index en premier
-            self.treeview.insert('', 'end', values=values)
+        for idx, row in df.iterrows():
+            tags = []
+            tags.append('pair') if idx % 2 == 0 else tags.append('impair')
+            if(list(row)[3]<0):
+                tags.append('negative')
+            self.treeview.insert('', 'end', values=list(row), tags=tags)
+        
+        self.treeview.tag_configure("negative", foreground="#cc2c2c")
+        self.treeview.tag_configure('pair', background="#c7c7c7")
+        self.treeview.tag_configure('impair', background='white')
 
     # def enable(self):
     #     '''Change the entry state from readonly to normal'''
@@ -139,7 +156,7 @@ class GUI:
     def error(self):
         '''Error message box if exception
         '''
-        messagebox.showinfo("Stats reader", "Please enter valid information")        
+        messagebox.showinfo("Statistical Analysis Tool", "Please enter valid information")        
 
     def run(self):
         self.root.mainloop()
