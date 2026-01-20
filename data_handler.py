@@ -13,7 +13,9 @@ class DataHandler:
    def get_indicators (self) -> list:
       return sorted(self.df['INDICATOR'].unique().tolist())
    
-
+   def get_years_columns(self) -> list:
+      return self.df.columns[2:]
+      
    def get_delta_df(self, indicator: str, start_year: str, end_year: str):
       filtered_df = self.df.copy()
     

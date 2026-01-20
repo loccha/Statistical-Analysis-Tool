@@ -7,12 +7,7 @@ class AppController:
         self.gui = None
         self.directory = os.getcwd()
 
-        self.start_year = ''
-        self.end_year = ''
-        self.indicator = ''
-
         self.current_df = None
-
 
     def set_gui(self, gui):
         self.gui = gui
@@ -34,9 +29,17 @@ class AppController:
             self.gui.display_indicators(self.data_handler.get_indicators())
 
 
+    def get_user_values(self):
+        indicator = self.gui.indicators_cb.get()
+        start_year = self.gui.start_year_spinbox.get()
+        end_year = self.gui.end_year_spinbox.get()
+
+        return indicator, start_year, end_year
+
+
     def filter(self, df):
         #fetch selected countries
-        selected_countries = self.gui.selected_countries
+        selected_countries = self.gui.get_selected_countries()
         
         #update dataframe
         f_df = df.copy()
@@ -44,49 +47,33 @@ class AppController:
         return f_df
     
 
-    def on_enter_pressed(self):
-        self.indicator = self.gui.indicators_cb.get()
-        self.start_year = self.gui.start_year_spinbox.get()
-        self.end_year = self.gui.end_year_spinbox.get()
+    def on_inputs_changed(self):
+        indicator, start_year, end_year = self.get_user_values()
+        self.current_df = self.data_handler.get_delta_df(indicator, start_year, end_year)
 
-        self.current_df = self.data_handler.get_delta_df(self.indicator, self.start_year, self.end_year)
-        if self.gui.selected_countries:
+        #if the user is filtering by countries
+        if self.gui.get_selected_countries():
             self.current_df = self.filter(self.current_df)
         
         self.gui.display_datas(self.current_df)
 
+
+    def on_reloadAll_clicked(self):
+        indicator, start_year, end_year = self.get_user_values()
+        self.current_df = self.data_handler.get_delta_df(indicator, start_year, end_year)
+
+        self.gui.display_datas(self.current_df)
     
+
     def on_filter_clicked(self):
-        if self.gui.selected_countries:
+        if self.gui.get_selected_countries():
             self.current_df = self.filter(self.current_df) 
             self.gui.display_datas(self.current_df)
 
 
-    def on_reloadAll_clicked(self):
-        self.indicator = self.gui.indicators_cb.get()
-        self.start_year = self.gui.start_year_spinbox.get()
-        self.end_year = self.gui.end_year_spinbox.get()
-
-        self.current_df = self.data_handler.get_delta_df(self.indicator, self.start_year, self.end_year)
-        self.gui.display_datas(self.current_df)
-
-
     def min_max_years_boundarie(self):
-        years_columns = self.data_handler.df.columns[2:]
+        years_columns = self.data_handler.get_years_columns()
         return years_columns[0], years_columns[-1]
-
-
-    def on_year_change(self):
-        self.start_year = str(self.gui.start_year_var.get())
-        self.end_year = str(self.gui.end_year_var.get())
-
-        self.current_df = self.data_handler.get_delta_df(self.indicator, self.start_year, self.end_year)
-
-        if self.gui.selected_countries:
-            self.current_df = self.filter(self.current_df)
-
-        self.gui.display_datas(self.current_df)
-
 
 
 

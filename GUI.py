@@ -7,25 +7,41 @@ class GUI:
         self.root = tk.Tk()
         self.controller = controller
 
-        self.root.bind('<Return>', lambda event: self.controller.on_enter_pressed())
-
         self.build_ui()
 
     #builds the opening UI
     def build_ui(self):
         self.root.title("Statistical Analysis Tool")
+        self._setup_fonts()
+        self._build_form()
+        self._build_search_bar()
+        self._build_selected_countries_display()  
+        self._build_filter()
+        self._build_treeview()
+
+        self._setup_bindings()
+
+        #dictionnary country -> items for the search bar
+        self.country_items = {}
+    
+
+    def _setup_fonts(self):
         self.font1=('Bahnschrift', 11, 'normal')
         self.font2=('Bahnschrift', 10, 'bold')
         self.font3=('Bahnschrift', 9, 'normal')
 
 
-        #-------Main form frame-------
+    def _build_form(self):
         self.form_frame=tk.Frame(self.root)
         self.form_frame.pack(padx=10, pady=20, anchor='w')
-
         self.form_frame.grid_columnconfigure(1, weight=1)
 
-        #----- Row 0: File-------
+        self._build_file_section()
+        self._build_indicator_section()
+        self._build_years_section()
+                
+
+    def _build_file_section(self):
         self.file_label = tk.Label(self.form_frame, font=self.font1, text='File:')
         self.file_label.grid(row=0, column=0, sticky=tk.W, pady=2)
 
@@ -36,7 +52,8 @@ class GUI:
         self.open_button = tk.Button(self.form_frame, text="Open", command=self.controller.on_open_clicked)
         self.open_button.grid(row=0, column=2, padx=20)
 
-        #-----Row 1: Indicator------
+
+    def _build_indicator_section(self):
         self.current_label = tk.Label(self.form_frame, font=self.font1, text='Indicator:')
         self.current_label.grid(row=1, column=0, sticky=tk.W, pady=2)
 
@@ -48,12 +65,12 @@ class GUI:
         
         self.indicators_cb.grid(row=1, column=1, sticky="ew")
 
-        #-----Row 2: years entries-------
 
+    def _build_years_section(self):
         self.year_frame = tk.Frame(self.form_frame)
         self.year_frame.grid(row=2, column=1, columnspan=2, sticky="ew", pady=2)
 
-        #start year
+        #'From' section
         self.start_year_label = tk.Label(self.form_frame, font=self.font1, text='From:')
         self.start_year_label.grid(row=2, column=0, sticky=tk.W)
         
@@ -63,7 +80,7 @@ class GUI:
         )
         self.start_year_spinbox.grid(row=0, column=1)
 
-        #end year
+        #'To' section
         self.end_year_label = tk.Label(self.year_frame, font=self.font1, text='To:')
         self.end_year_label.grid(row=0, column=2, padx=10)
 
@@ -74,8 +91,7 @@ class GUI:
         self.end_year_spinbox.grid(row=0, column=3)
 
 
-        #----------Search bar------------
-        
+    def _build_search_bar(self):
         self.search_var = tk.StringVar()
         self.selected_countries = []
 
@@ -87,13 +103,15 @@ class GUI:
         self.search_entry = tk.Entry(self.search_bar_frame, textvariable=self.search_var, width=20)
         self.search_entry.pack(padx=10, side='right')
 
-        #---------Selected country frame ----------
+        self.search_var.trace_add("write", self.on_search_change)
+
+
+    def _build_selected_countries_display(self):
         self.selected_countries_frame = tk.Frame(self.root)
         self.selected_countries_frame.pack(padx=10, anchor='nw')
 
         #Clear selections button (X)
         self.clear_selection_button = tk.Label(self.selected_countries_frame, text='(✕)')
-        self.clear_selection_button.bind("<Button-1>", self.on_clear_selection_clicked)
 
         self.selected_countries_label_var = tk.StringVar(value="Selected countries: ")
         #TODO: wraplength : equal to treeview with variables
@@ -106,11 +124,8 @@ class GUI:
             )
         self.selected_countries_label.pack(side='left')
 
-        #dictionnary for search country -> item_id
-        self.country_items = {}
-        self.search_var.trace_add("write", self.on_search_change)
 
-        #----------Filter Frame-------------
+    def _build_filter(self):
         self.filter_frame = tk.Frame(self.root)
         self.filter_frame.pack(padx=20, pady=10, anchor='nw')
 
@@ -119,7 +134,9 @@ class GUI:
 
         self.clear_button = tk.Button(self.filter_frame, text="(Re)Load All", command=self.controller.on_reloadAll_clicked)
         self.clear_button.pack(padx=10, anchor='e', side='right')
-        #----------Treeview Frame -------------
+
+
+    def _build_treeview(self):
         #TODO: width = pady treeview + all columns
         self.treeview_frame = tk.Frame(self.root, width=470, height=400)
         self.treeview_frame.pack(padx=20, pady=10, anchor='nw')
@@ -139,11 +156,11 @@ class GUI:
         for col in columns:
             self.treeview.heading(col, text=col)
 
-        #COUNTRY column
+        #'Country name' column
         self.treeview.heading(columns[0], text=columns[0])
         self.treeview.column(columns[0], width=225, stretch=False)
 
-        #numbers columns
+        #Other columns
         for col in columns[1:]:
             self.treeview.heading(col, text=col)
             self.treeview.column(col, anchor='e', width=75, stretch=False)
@@ -151,11 +168,18 @@ class GUI:
         self.treeview.pack()
         self.scroll_bar.config(command=self.treeview.yview)
 
+
+    def _setup_bindings(self):
+        self.root.bind('<Return>', lambda event: self.controller.on_inputs_changed())
         self.treeview.bind("<Double-1>", lambda event: self.on_double_click(event))
+        self.clear_selection_button.bind("<Button-1>", self.on_clear_selection_clicked)
+
+
+    def get_selected_countries(self):     
+        return self.selected_countries
     
 
     def selected_countries_display_update(self):
-
         current_label = self.selected_countries_label_var.get()
         new_country = self.selected_countries[-1]
 
@@ -181,10 +205,7 @@ class GUI:
         item_id = self.treeview.identify_row(event.y)
     
         if item_id:
-            # Récupérer les données de cette ligne
-            item_data = self.treeview.item(item_id)
-
-            #add country to the list
+            #add country to 'selected countries' if not already selected
             country = self.treeview.item(item_id)['values'][0]
             if(country not in self.selected_countries):
                 self.selected_countries.append(country)
@@ -230,7 +251,7 @@ class GUI:
             from_=min_year, 
             to=max_year, 
             textvariable=self.start_year_var, 
-            command=self.controller.on_year_change
+            command=self.controller.on_inputs_changed
             )
         
         self.end_year_var = tk.IntVar(value=max_year)
@@ -238,7 +259,7 @@ class GUI:
             from_=min_year, 
             to=max_year, 
             textvariable=self.end_year_var, 
-            command=self.controller.on_year_change
+            command=self.controller.on_inputs_changed
             )
 
 
