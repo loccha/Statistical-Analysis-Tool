@@ -15,10 +15,13 @@ class GUI:
     def build_ui(self):
         self.root.title("Statistical Analysis Tool")
         self.font1=('Bahnschrift', 11, 'normal')
+        self.font2=('Bahnschrift', 10, 'bold')
+        self.font3=('Bahnschrift', 9, 'normal')
 
-        #----Main form frame----
+
+        #-------Main form frame-------
         self.form_frame=tk.Frame(self.root)
-        self.form_frame.pack(padx=10, pady=10, anchor='w')
+        self.form_frame.pack(padx=10, pady=20, anchor='w')
 
         self.form_frame.grid_columnconfigure(1, weight=1)
 
@@ -46,20 +49,18 @@ class GUI:
         self.indicators_cb.grid(row=1, column=1, sticky="ew")
 
         #-----Row 2: years entries-------
+
         self.year_frame = tk.Frame(self.form_frame)
         self.year_frame.grid(row=2, column=1, columnspan=2, sticky="ew", pady=2)
 
         #start year
         self.start_year_label = tk.Label(self.form_frame, font=self.font1, text='From:')
         self.start_year_label.grid(row=2, column=0, sticky=tk.W)
-
+        
         self.start_year_spinbox = tk.Spinbox(
             self.year_frame,
-            #from_=1980,  #TODO: min year in the datas
-            #to=2030,     #TODO: max year in the datas
             width=10,
         )
-
         self.start_year_spinbox.grid(row=0, column=1)
 
         #end year
@@ -68,17 +69,60 @@ class GUI:
 
         self.end_year_spinbox = tk.Spinbox(
             self.year_frame,
-            #from_=1980,  #TODO: min year in the datas
-            #to=2030,     #TODO: max year in the datas
             width=10,
         )
         self.end_year_spinbox.grid(row=0, column=3)
 
 
-        #----------Treeview-------------
+        #----------Search bar------------
+        
+        self.search_var = tk.StringVar()
+        self.selected_countries = []
+
+        self.search_bar_frame = tk.Frame(self.root)
+        self.search_bar_frame.pack(padx=10, pady=5, anchor='nw')        
+
+        self.search_label = tk.Label(self.search_bar_frame, font=self.font2, text='Search:')
+        self.search_label.pack(side='left')
+        self.search_entry = tk.Entry(self.search_bar_frame, textvariable=self.search_var, width=20)
+        self.search_entry.pack(padx=10, side='right')
+
+        #---------Selected country frame ----------
+        self.selected_countries_frame = tk.Frame(self.root)
+        self.selected_countries_frame.pack(padx=10, anchor='nw')
+
+        #Clear selections button (X)
+        self.clear_selection_button = tk.Label(self.selected_countries_frame, text='(✕)')
+        self.clear_selection_button.bind("<Button-1>", self.on_clear_selection_clicked)
+
+        self.selected_countries_label_var = tk.StringVar(value="Selected countries: ")
+        #TODO: wraplength : equal to treeview with variables
+        self.selected_countries_label = tk.Label(
+            self.selected_countries_frame,
+            textvariable=self.selected_countries_label_var, 
+            wraplength=390, 
+            justify='left',
+            font=("Segoe UI", 8)
+            )
+        self.selected_countries_label.pack(side='left')
+
+        #dictionnary for search country -> item_id
+        self.country_items = {}
+        self.search_var.trace_add("write", self.on_search_change)
+
+        #----------Filter Frame-------------
+        self.filter_frame = tk.Frame(self.root)
+        self.filter_frame.pack(padx=20, pady=10, anchor='nw')
+
+        filter_button = tk.Button(self.filter_frame, text="Filter", command=self.controller.on_filter_clicked)
+        filter_button.pack(anchor='w', side='left')
+
+        self.clear_button = tk.Button(self.filter_frame, text="(Re)Load All", command=self.controller.on_reloadAll_clicked)
+        self.clear_button.pack(padx=10, anchor='e', side='right')
+        #----------Treeview Frame -------------
+        #TODO: width = pady treeview + all columns
         self.treeview_frame = tk.Frame(self.root, width=470, height=400)
-        #self.treeview_frame.pack_propagate(False)
-        self.treeview_frame.pack(padx=20, pady=20, anchor='nw')
+        self.treeview_frame.pack(padx=20, pady=10, anchor='nw')
 
         self.scroll_bar = tk.Scrollbar(self.treeview_frame)
         self.scroll_bar.pack(side=tk.RIGHT, fill=tk.Y)
@@ -88,7 +132,8 @@ class GUI:
             self.treeview_frame, 
             yscrollcommand=self.scroll_bar.set,
             columns=columns,
-            show='headings'
+            show='headings',
+            selectmode="extended"
             )
         
         for col in columns:
@@ -104,8 +149,49 @@ class GUI:
             self.treeview.column(col, anchor='e', width=75, stretch=False)
 
         self.treeview.pack()
-
         self.scroll_bar.config(command=self.treeview.yview)
+
+        self.treeview.bind("<Double-1>", lambda event: self.on_double_click(event))
+    
+
+    def selected_countries_display_update(self):
+
+        current_label = self.selected_countries_label_var.get()
+        new_country = self.selected_countries[-1]
+
+        if len(self.selected_countries)>1:
+            self.selected_countries_label_var.set(f"{current_label}, '{new_country}'")
+        else:
+            self.selected_countries_label_var.set(f"{current_label} '{new_country}'")
+
+
+    #'clear selection' is this button in the app --> (x)
+    def on_clear_selection_clicked(self, *args):
+        self.selected_countries = []
+        self.selected_countries_label_var.set("Selected countries: ")
+        self.clear_selection_button.pack_forget()
+
+
+    def pack_clear_selection_button(self):
+        self.clear_selection_button.pack(side='left', before=self.selected_countries_label, anchor="nw")
+
+
+    def on_double_click(self, event):
+        
+        item_id = self.treeview.identify_row(event.y)
+    
+        if item_id:
+            # Récupérer les données de cette ligne
+            item_data = self.treeview.item(item_id)
+
+            #add country to the list
+            country = self.treeview.item(item_id)['values'][0]
+            if(country not in self.selected_countries):
+                self.selected_countries.append(country)
+                self.selected_countries_display_update()
+
+            if len(self.selected_countries)==1 :
+                self.pack_clear_selection_button()
 
 
     def show_file_dialog(self, initial_dir):
@@ -117,20 +203,51 @@ class GUI:
         )
         return filename
     
+
+    def on_search_change(self, *args):
+        query = self.search_var.get().lower()
+
+        for country, item_id in self.country_items.items():
+            if query.lower() in country.lower():
+                self.treeview.reattach(item_id, '', 'end')
+            else:
+                self.treeview.detach(item_id)
+    
+
     def display_path_file(self, path):
         '''Display the selected file path in the entry'''
         self.file_entry.delete(0, tk.END)
         self.file_entry.insert(0, path)
 
+
     def display_indicators(self, indicators):
         self.indicators_cb['values'] = indicators
+    
+
+    def display_years(self, min_year, max_year):
+        self.start_year_var = tk.IntVar(value=min_year)
+        self.start_year_spinbox.config(
+            from_=min_year, 
+            to=max_year, 
+            textvariable=self.start_year_var, 
+            command=self.controller.on_year_change
+            )
+        
+        self.end_year_var = tk.IntVar(value=max_year)
+        self.end_year_spinbox.config(
+            from_=min_year, 
+            to=max_year, 
+            textvariable=self.end_year_var, 
+            command=self.controller.on_year_change
+            )
+
 
     def display_datas(self, df):
         self.treeview.delete(*self.treeview.get_children())
 
         #----tags color configuration----
         self.treeview.tag_configure("negative", foreground="#cc2c2c")
-        self.treeview.tag_configure('pair', background="#c7c7c7")
+        self.treeview.tag_configure('pair', background="#e1dede")
         self.treeview.tag_configure('impair', background='white')
 
         for idx, row in df.iterrows():
@@ -145,21 +262,17 @@ class GUI:
             #Format strings to display
             values[1:] = [f"{x:.3f}" for x in values[1:]]
 
-            self.treeview.insert('', 'end', values=values, tags=tags)
-    
+            item_id = self.treeview.insert('', 'end', values=values, tags=tags)
 
-    # def enable(self):
-    #     '''Change the entry state from readonly to normal'''
-    #     self.file_entry.config(state="normal") 
-    
-    #TODO: limit the years to min and max years
-    def min_max_years_boundaries(self):
-        return None
+            #for the search bar
+            self.country_items[row['COUNTRY'].lower()] = item_id
+
 
     def error(self):
         '''Error message box if exception
         '''
         messagebox.showinfo("Statistical Analysis Tool", "Please enter valid information")        
+
 
     def run(self):
         self.root.mainloop()
