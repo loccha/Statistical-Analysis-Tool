@@ -5,17 +5,21 @@ class DataHandler:
    def __init__(self):
       self.df = None
 
+
    def load_file(self, csv_path):
       self.df = pd.read_csv(csv_path).copy()
-      self.df.columns = self.df.columns.str.strip()         #cleans the columns
+      self.df.columns = self.df.columns.str.strip()        
    
-   #returns a list of categories in alphabetic order
+
    def get_indicators (self) -> list:
+      '''returns a list of categories in alphabetic order'''
       return sorted(self.df['INDICATOR'].unique().tolist())
    
+
    def get_years_columns(self) -> list:
       return self.df.columns[2:]
       
+
    def get_delta_df(self, indicator: str, start_year: str, end_year: str):
       filtered_df = self.df.copy()
     

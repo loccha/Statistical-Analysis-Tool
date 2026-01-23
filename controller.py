@@ -17,6 +17,7 @@ class AppController:
         '''Open a file dialog to select a CSV file'''
         filename = self.gui.show_file_dialog(self.directory)
 
+        #load default values if filename is selected
         if filename:
             self.directory = os.path.dirname(filename)
             self.gui.display_path_file(filename)
@@ -25,7 +26,7 @@ class AppController:
             self.data_handler.load_file(filename)
 
             min_year, max_year = self.min_max_years_boundarie()
-            self.gui.display_years(min_year, max_year)   #test    
+            self.gui.display_years(min_year, max_year)       
             self.gui.display_indicators(self.data_handler.get_indicators())
 
 

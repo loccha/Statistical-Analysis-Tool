@@ -6,14 +6,10 @@ from controller import AppController
 def main():
    try:
       data_handler = DataHandler()
-
-      #TODO: erase
-      #print(data_handler.get_delta_df('Gross domestic product (GDP), Price deflator, Index','2002','2004'))
-
       controller = AppController(data_handler)
       gui = GUI(controller)
+
       controller.set_gui(gui)
-      
       gui.run()
 
 
