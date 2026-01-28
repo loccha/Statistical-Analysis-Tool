@@ -1,6 +1,7 @@
 # Statistical Analysis Tool
 
-A lightweight desktop application for analyzing statistical data across countries and indicators over time. Built with Python, this tool allows you to load CSV data, calculate percentage changes (deltas) over specified year ranges, filter by country, and sort results interactively.
+A lightweight desktop application for exploring and analyzing economic and statistical indicators across countries.
+Users can load CSV datasets, select indicators (like GDP, CPI, or other metrics), choose year ranges, and filter by country. The app automatically calculates percentage changes over time, supports sorting, and provides an interactive, easy-to-use interface for quickly visualizing trends and changes.
 
 <br>
 <div align="center">
