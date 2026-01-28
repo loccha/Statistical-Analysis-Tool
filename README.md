@@ -4,7 +4,7 @@ A lightweight desktop application for analyzing statistical data across countrie
 
 <br>
 <div align="center">
-  <img src="docs/demo.gif" alt="Application Demo" width="700" style="border: 1px solid #03164f97; border-radius: 2px;">
+  <img src="docs/demo.gif" alt="Application Demo" width="700">
 </div>
 
 ## Features
