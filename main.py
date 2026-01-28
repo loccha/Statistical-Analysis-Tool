@@ -8,7 +8,7 @@ def main():
       data_handler = DataHandler()
       controller = AppController(data_handler)
       gui = GUI(controller)
-
+      
       controller.set_gui(gui)
       gui.run()
 
