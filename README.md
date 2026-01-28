@@ -2,9 +2,10 @@
 
 A lightweight desktop application for analyzing statistical data across countries and indicators over time. Built with Python, this tool allows you to load CSV data, calculate percentage changes (deltas) over specified year ranges, filter by country, and sort results interactively.
 
-
-<img src="docs/demo.gif" alt="Demo" style="max-width: 700px; width: 100%;">
-
+<br>
+<div align="center">
+  <img src="docs/demo.gif" alt="Application Demo" width="700" style="border: 1px solid #03164f97; border-radius: 2px;">
+</div>
 
 ## Features
 
