@@ -75,7 +75,7 @@ python src/main.py
 
 Your CSV file must follow this structure:
 
-| COUNTRY | INDICATOR | 1980 | 1990 | 2000 | 2010 | 2020 |
+| COUNTRY | INDICATOR | 1999 | 2000 | 2001 | ...  | 2020 |
 |---------|-----------|------|------|------|------|------|
 | USA     | GDP       | 2800 | 5800 | 9900 | 15000| 20900|
 | Canada  | CPI       | 250  | 580  | 730  | 1700 | 1900 |
@@ -84,6 +84,7 @@ Your CSV file must follow this structure:
 - First column must be named `COUNTRY`
 - Second column must be named `INDICATOR`
 - Remaining columns must be year headers (format: YYYY, between 1900-2099)
+- The headers must be in strictly increasing order without gaps between years
 - Country and Indicator columns must contain text
 - Year columns must contain numeric values
 

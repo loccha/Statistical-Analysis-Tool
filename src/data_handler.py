@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import re
 
 class InvalidFileFormatError(Exception):
@@ -56,6 +57,11 @@ class DataHandler:
                f"Invalid year column: '{year}'. "
                 "Year columns must be between 1900 and 2099."
                )
+         elif (not self._is_year_increasing(year)):
+            raise InvalidFileFormatError(
+               f"Numbers must be in strictly increasing order without gaps"
+               )
+
 
       for t in self.df.dtypes[:2]:
          if not pd.api.types.is_string_dtype(t):
@@ -97,11 +103,15 @@ class DataHandler:
 
       # Create new df: Countries, start year value, end year value, and delta percentage
       delta_df = filtered_df.loc[:, [self.country_col, start_year, end_year]]
-      delta_df['delta'] = round(((delta_df[end_year] - delta_df[start_year]) 
-                                 / delta_df[start_year]) * 100, 3)
-
+      
+      delta_df['delta'] = delta_df.apply(
+         lambda row: np.nan if row[start_year] == 0     # Avoid division by zero
+         else round(((row[end_year] - row[start_year]) 
+                     / row[start_year]) * 100, 3),
+            axis=1
+         )
       return delta_df
-   
+
 
    def get_country_col(self):
       return self.country_col
@@ -129,4 +139,15 @@ class DataHandler:
       else :
          return df.sort_values(by=df.columns[icol], ascending=False)
       
- 
+
+   def _is_year_increasing(self, year):
+      '''Check if the year is in strictly increasing order without gaps'''
+      years = self.get_years_columns() 
+      
+      current_index = years.get_loc(year)
+      if current_index == 0:
+         return True
+      else:
+         prev_year = years[current_index - 1]
+         return int(year) == int(prev_year) + 1
+      
