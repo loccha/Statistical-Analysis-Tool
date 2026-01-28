@@ -2,11 +2,26 @@ import pandas as pd
 import re
 
 class InvalidFileFormatError(Exception):
-   '''Exception raised when CSV file is not the right format'''
+   """Exception raised when CSV file is not the right format"""
    pass
 
 
 class DataHandler:
+   """
+   Model layer of the application (MVC pattern).
+
+   Responsible for:
+   - Loading and validating CSV data files
+   - Calculating deltas for indicators over specified years by country
+   - Providing data to the controller for GUI display
+
+   Attributes:
+         df (pd.DataFrame): Loaded data frame from the CSV file
+         toggle (int): Toggle state for sorting (0: ascending, 1: descending)
+         icol_prec (int): Previously clicked column index for sorting
+         country_col (str): Expected name of the country column in the CSV
+         indicator_col (str): Expected name of the indicator column in the CSV
+   """
    
    def __init__(self):
       self.df = None
@@ -19,7 +34,12 @@ class DataHandler:
 
 
    def load_file(self, csv_path: str):
+      """
+      Loads and validates the CSV file at the given path.
+      Raises InvalidFileFormatError if the file format is incorrect.
+      """
       self.df = pd.read_csv(csv_path).copy()
+      # Remove leading/trailing whitespace from column names
       self.df.columns = self.df.columns.str.strip()
 
       required_columns = [self.country_col, self.indicator_col]
@@ -27,8 +47,9 @@ class DataHandler:
          self.df = None
          raise InvalidFileFormatError(f"The file must include {self.country_col} and {self.indicator_col}.")
       
+      # Validate year columns (columns after first 2: COUNTRY and INDICATOR)
       for year in self.df.columns[2:]:
-         #Accept years 1900 to 2099
+         # Accept years 1900 to 2099
          if not re.match("^(19|20)\d{2}$", year):
             self.df = None
             raise InvalidFileFormatError(
@@ -40,7 +61,7 @@ class DataHandler:
          if not pd.api.types.is_string_dtype(t):
             self.df = None
             raise InvalidFileFormatError(
-               f"Column '{t}' must be of type text (object)."
+               f"Column '{t}' must be of type text."
                )
          
       for t in self.df.dtypes[2:]:
@@ -52,16 +73,21 @@ class DataHandler:
    
 
    def get_indicators (self) -> list:
-      '''returns a list of categories in alphabetic order'''
+      """returns a list of indicators"""
       return sorted(self.df[self.indicator_col].unique().tolist())
    
 
    def get_years_columns(self) -> list:
+      """returns a list of years columns as strings"""
       return self.df.columns[2:]
       
 
-   def get_delta_df(self, indicator: str, start_year: str, end_year: str):    
-      #filtering df to get data's indicator from countries in alphabetical order 
+   def get_delta_df(self, indicator: str, start_year: str, end_year: str) -> pd.DataFrame:
+      """
+      Returns a DataFrame with countries, start year, end year, and delta percentage
+      for the specified indicator between the given years.
+      """
+      # Filter to get specified indicator data, sort countries alphabetically, remove indicator column
       filtered_df = (
          self.df[self.df[self.indicator_col] == indicator]
               .sort_values(by=self.country_col, ascending=True)
@@ -69,7 +95,7 @@ class DataHandler:
               .reset_index(drop=True)
       )
 
-      #creating new df with Countries, start year, end year and delta (changing in % from start to end year)
+      # Create new df: Countries, start year value, end year value, and delta percentage
       delta_df = filtered_df.loc[:, [self.country_col, start_year, end_year]]
       delta_df['delta'] = round(((delta_df[end_year] - delta_df[start_year]) 
                                  / delta_df[start_year]) * 100, 3)
@@ -85,11 +111,16 @@ class DataHandler:
       return self.indicator_col
    
 
-   def toggle_sort(self, icol, df):
+   def toggle_sort(self, icol: int, df: pd.DataFrame) -> pd.DataFrame:
+      """
+      Toggles ascending sorting of the DataFrame based on the clicked column index.
+      If the same column is clicked again, it reverses the sort order.
+      """
       if self.icol_prec!=icol:
          self.toggle=0
       else :
-         self.toggle=1-self.toggle  #flips 0<->1
+         # Toggle between 0 and 1 to reverse sort order
+         self.toggle=1-self.toggle
 
       self.icol_prec=icol
 
