@@ -3,9 +3,20 @@
 A lightweight desktop application for exploring and analyzing economic and statistical indicators across countries.
 Users can load CSV datasets, select indicators (like GDP, CPI, or other metrics), choose year ranges, and filter by country. The app automatically calculates percentage changes over time, supports sorting, and provides an interactive, easy-to-use interface for quickly visualizing trends and changes.
 
+## Table of Contents
+
+- [Features](#features)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Technologies Used](#technologies-used)
+- [Architecture](#architecture)
+- [Learning Outcomes](#learning-outcomes)
+
+
+<br>
 <br>
 <div align="center">
-  <img src="docs/demo.gif" alt="Application Demo" width="700">
+  <img src="docs/demo.gif" alt="Application Demo" width="600">
 </div>
 
 ## Features
